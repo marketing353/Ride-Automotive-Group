@@ -11,20 +11,33 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ content, isGenerating,
   const [copied, setCopied] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  // Fallback: If AI ignores rules and outputs markdown bold (**text**), replace it with <strong>text</strong>
-  // Handled loose markdown with spaces or newlines which often happens in long-form generation
+  // Fallback: If AI ignores rules and outputs markdown, force convert to HTML
   const processedContent = React.useMemo(() => {
     if (!content) return '';
-    return content
-      // Fix ** bold ** (with optional spaces)
-      .replace(/\*\*\s?([^*]+?)\s?\*\*/g, '<strong>$1</strong>')
-      // Fix * italic * (start of line bullet check first)
-      .replace(/^\* /gm, '• ') 
-      // Fix remaining * italics
-      .replace(/(?<!\*)\*\s?([^*]+?)\s?\*(?!\*)/g, '<em>$1</em>')
-      // Clean up any double strongs if they occur
+    
+    let cleaned = content;
+
+    // 1. Fix Headers (### Title -> <h3>Title</h3>) to prevent markdown headers
+    cleaned = cleaned.replace(/^###\s+(.+)$/gm, '<h3>$1</h3>');
+    cleaned = cleaned.replace(/^##\s+(.+)$/gm, '<h2>$1</h2>');
+
+    // 2. Fix Bold (** text ** or **text**)
+    // Uses \s* to handle any amount of whitespace inside the asterisks
+    cleaned = cleaned.replace(/\*\*\s*([^*]+?)\s*\*\*/g, '<strong>$1</strong>');
+
+    // 3. Fix Italics (* text *)
+    // Uses lookbehind/lookahead to avoid matching unordered list bullets (* Item)
+    // Matches *text* but not * at the start of a line
+    cleaned = cleaned.replace(/(?<!^\s*)\*\s*([^*]+?)\s*\*(?!\*)/gm, '<em>$1</em>');
+
+    // 4. Cleanup: Remove any double tags if regex over-matched
+    cleaned = cleaned
       .replace(/<strong><strong>/g, '<strong>')
-      .replace(/<\/strong><\/strong>/g, '</strong>');
+      .replace(/<\/strong><\/strong>/g, '</strong>')
+      .replace(/<em><em>/g, '<em>')
+      .replace(/<\/em><\/em>/g, '</em>');
+
+    return cleaned;
   }, [content]);
 
   const handleCopy = () => {

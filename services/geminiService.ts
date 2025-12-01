@@ -1,4 +1,3 @@
-
 import { GoogleGenAI } from "@google/genai";
 import { ArticleConfig } from "../types";
 
@@ -35,11 +34,12 @@ export const generateSEOArticleStream = async (
   
   CRITICAL FORMATTING RULES:
   1. Output ONLY raw HTML. No \`\`\` code blocks.
-  2. STRICTLY NO MARKDOWN. NO **bold** or *italics*.
+  2. STRICTLY NO MARKDOWN. NO **bold** or *italics* or ## headers.
   3. Use ONLY: <h1>, <h2>, <h3>, <p>, <ul>, <ol>, <li>, <strong>, <em>, <blockquote>.
   4. ALWAYS use <strong> tag for bold text. NEVER use **text**.
-  5. The first element MUST be an <h1> tag. ${titleInstruction}
-  6. The second element MUST be a hidden <div> with id="meta-description" containing the meta description.
+  5. LISTS MUST BE HTML: Use <ul><li>...</li></ul>. DO NOT use hyphens (- item) or asterisks (* item) for lists.
+  6. The first element MUST be an <h1> tag. ${titleInstruction}
+  7. The second element MUST be a hidden <div> with id="meta-description" containing the meta description.
   
   Tone: ${config.tone}. Language: ${config.language}.
   `;
@@ -63,7 +63,7 @@ export const generateSEOArticleStream = async (
     
     Ensure the content is optimized for the keyword "${config.keyword}".
     
-    IMPORTANT: Do NOT output Markdown. Use HTML tags only. Use <strong> for bold.
+    IMPORTANT: Do NOT output Markdown. Use HTML tags only. Use <strong> for bold. Use <ul><li> for lists.
   `;
 
   try {

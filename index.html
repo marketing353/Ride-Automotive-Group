@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -23,6 +24,28 @@
         .prose-editor blockquote { border-left: 4px solid #4f46e5; padding-left: 1rem; font-style: italic; color: #4b5563; margin: 1.5rem 0; background: #f9fafb; padding: 1rem; border-radius: 0 0.5rem 0.5rem 0; }
         .prose-editor pre { background: #1f2937; color: #f3f4f6; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin-bottom: 1.5rem; }
         
+        /* New Image Placeholder Style */
+        .image-placeholder {
+            background-color: #eff6ff;
+            border: 2px dashed #93c5fd;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            color: #1e40af;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-weight: 500;
+        }
+        .image-placeholder::before {
+            content: "🖼️";
+            margin-right: 0.5rem;
+            font-size: 1.25rem;
+        }
+
         /* Custom scrollbar */
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }

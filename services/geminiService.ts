@@ -1,9 +1,34 @@
+
 import { GoogleGenAI } from "@google/genai";
 import { ArticleConfig } from "../types";
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 const MODEL_NAME = 'gemini-2.5-flash';
+const IMAGE_MODEL_NAME = 'gemini-2.5-flash-image';
+
+export const generateImage = async (prompt: string): Promise<string | null> => {
+  try {
+    const response = await ai.models.generateContent({
+      model: IMAGE_MODEL_NAME,
+      contents: {
+        parts: [
+          { text: `Generate a high-quality, photorealistic, professional 16:9 image for a blog post about: ${prompt}` }
+        ]
+      }
+    });
+
+    for (const part of response.candidates?.[0]?.content?.parts || []) {
+      if (part.inlineData) {
+        return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+      }
+    }
+    return null;
+  } catch (error) {
+    console.error("Error generating image:", error);
+    return null;
+  }
+};
 
 export const generateSEOArticleStream = async (
   config: ArticleConfig, 
@@ -20,6 +45,19 @@ export const generateSEOArticleStream = async (
     ? "The H1 Title MUST be highly clickbait, using power words (e.g., 'Shocking', 'Ultimate', 'Insane'), and psychologically compelling the user to click."
     : "The H1 Title MUST be SEO-optimized, clear, and professional.";
 
+  const imageInstruction = config.includeImages
+    ? `VISUALS: You MUST insert 3-4 image placeholders throughout the article. 
+       Format exactly like this: <div class="image-placeholder" data-prompt="Detailed description of the image content">IMAGE IDEA: Detailed description of the image content</div>`
+    : "";
+
+  const faqInstruction = config.includeFAQ
+    ? "FAQ SECTION: You MUST end the article with an H2 'Frequently Asked Questions' section containing 3-5 relevant Q&A pairs."
+    : "";
+
+  const secondaryKwInstruction = config.secondaryKeywords
+    ? `SECONDARY KEYWORDS: Naturally weave the following LSI keywords into the text where they fit contextually: ${config.secondaryKeywords}. Do not force them, but try to include them.`
+    : "";
+
   // Heavily optimized for Readability and Flow
   const systemInstruction = `You are an expert copywriter who specializes in HIGH READABILITY content.
   Your goal is to write content that flows like water, keeping the reader glued to the screen.
@@ -35,7 +73,7 @@ export const generateSEOArticleStream = async (
   CRITICAL FORMATTING RULES:
   1. Output ONLY raw HTML. No \`\`\` code blocks.
   2. STRICTLY NO MARKDOWN. NO **bold** or *italics* or ## headers.
-  3. Use ONLY: <h1>, <h2>, <h3>, <p>, <ul>, <ol>, <li>, <strong>, <em>, <blockquote>.
+  3. Use ONLY: <h1>, <h2>, <h3>, <p>, <ul>, <ol>, <li>, <strong>, <em>, <blockquote>, <div>.
   4. ALWAYS use <strong> tag for bold text. NEVER use **text**.
   5. LISTS MUST BE HTML: Use <ul><li>...</li></ul>. DO NOT use hyphens (- item) or asterisks (* item) for lists.
   6. The first element MUST be an <h1> tag. ${titleInstruction}
@@ -48,12 +86,15 @@ export const generateSEOArticleStream = async (
     Write a ${config.length} article (${lengthDetails[config.length]}) about "${config.keyword}".
     
     Intent: ${config.intent}. Target Audience: ${config.audience}.
+    ${secondaryKwInstruction}
     
     Structure Instructions:
     1. H1 Title (${config.clickbait ? 'CLICKBAIT/HIGH-CTR' : 'Standard SEO'}).
     2. Hidden Meta Description.
     3. Introduction: Start with a Hook. Address the user's pain point immediately.
     4. Body: Use H2s and H3s. Break up text with Bullet Points (<ul>) frequently.
+    ${imageInstruction}
+    ${faqInstruction}
     5. Conclusion.
     
     Writing Style Checklist:
@@ -72,7 +113,7 @@ export const generateSEOArticleStream = async (
       contents: prompt,
       config: {
         systemInstruction: systemInstruction,
-        temperature: 0.85, // Higher temp for more natural/human flow
+        temperature: 0.85, 
       }
     });
 

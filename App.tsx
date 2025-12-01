@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { ArticleView } from './components/ArticleView';
@@ -9,12 +10,15 @@ import { PenTool } from 'lucide-react';
 const App: React.FC = () => {
   const [config, setConfig] = useState<ArticleConfig>({
     keyword: '',
+    secondaryKeywords: '',
     intent: 'informational',
     audience: 'beginners',
     length: 'standard',
     language: 'English',
     tone: 'professional',
-    clickbait: false
+    clickbait: false,
+    includeImages: true,
+    includeFAQ: true
   });
 
   const [content, setContent] = useState<string>('');
@@ -91,7 +95,7 @@ const App: React.FC = () => {
             </div>
         </div>
         <div className="hidden md:flex items-center gap-4 text-xs font-medium text-gray-500">
-            <span>v2.7.0</span>
+            <span>v2.8.0</span>
             <div className="h-4 w-px bg-gray-300"></div>
             <span className="text-indigo-600">Pro Plan Active</span>
         </div>

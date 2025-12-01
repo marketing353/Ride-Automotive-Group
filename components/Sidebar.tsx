@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { ArticleConfig } from '../types';
-import { Settings2, Zap, Target, Users, Type, Globe, MessageSquare, Flame } from 'lucide-react';
+import { Settings2, Zap, Target, Users, Type, Globe, MessageSquare, Flame, Image as ImageIcon, HelpCircle } from 'lucide-react';
 
 interface SidebarProps {
   config: ArticleConfig;
@@ -13,11 +13,17 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, isGenerating, onGenerate, wordCount }) => {
   
-  // Initialize default values if they don't exist (for safety during hot-reload)
+  // Initialize default values
   React.useEffect(() => {
-    if (!config.language) setConfig(prev => ({ ...prev, language: 'English' }));
-    if (!config.tone) setConfig(prev => ({ ...prev, tone: 'professional' }));
-    if (config.clickbait === undefined) setConfig(prev => ({ ...prev, clickbait: false }));
+    setConfig(prev => ({
+      ...prev,
+      language: prev.language || 'English',
+      tone: prev.tone || 'professional',
+      clickbait: prev.clickbait ?? false,
+      includeImages: prev.includeImages ?? true,
+      includeFAQ: prev.includeFAQ ?? true,
+      secondaryKeywords: prev.secondaryKeywords || ''
+    }));
   }, []);
 
   const handleChange = (field: keyof ArticleConfig, value: any) => {
@@ -35,7 +41,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, isGeneratin
         </h2>
 
         <div className="space-y-6">
-          {/* Keyword Input */}
+          {/* Main Keyword */}
           <div className="group">
             <label className="text-sm font-bold text-gray-700 mb-2 block group-focus-within:text-indigo-600 transition-colors">
               Main Keyword
@@ -50,20 +56,70 @@ export const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, isGeneratin
             />
           </div>
 
-          {/* Clickbait Toggle */}
-          <div className="bg-orange-50 border border-orange-100 p-3 rounded-lg flex items-center justify-between">
-            <div className="flex items-center gap-2">
-                <Flame className={`w-4 h-4 ${config.clickbait ? 'text-orange-500' : 'text-gray-400'}`} />
-                <span className="text-sm font-medium text-gray-700">Clickbait Title</span>
-            </div>
-            <button 
-                onClick={() => handleChange('clickbait', !config.clickbait)}
-                className={`w-10 h-5 rounded-full relative transition-colors duration-300 ${config.clickbait ? 'bg-orange-500' : 'bg-gray-300'}`}
-                disabled={isGenerating}
-            >
-                <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all duration-300 ${config.clickbait ? 'left-6' : 'left-1'}`}></div>
-            </button>
+          {/* Secondary Keywords */}
+          <div className="group">
+            <label className="text-sm font-bold text-gray-700 mb-2 block flex justify-between">
+              <span>LSI / Secondary Keywords</span>
+              <span className="text-xs text-gray-400 font-normal">Optional</span>
+            </label>
+            <textarea
+              value={config.secondaryKeywords}
+              onChange={(e) => handleChange('secondaryKeywords', e.target.value)}
+              placeholder="Comma separated (e.g. B2B growth, content strategy, lead gen)"
+              className="w-full rounded-lg border-gray-300 bg-gray-50 border p-3 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition-all h-20 resize-none"
+              disabled={isGenerating}
+            />
           </div>
+
+          {/* Toggles Grid */}
+          <div className="space-y-3">
+             {/* Clickbait Toggle */}
+            <div className="bg-white border border-gray-200 p-3 rounded-lg flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <Flame className={`w-4 h-4 ${config.clickbait ? 'text-orange-500' : 'text-gray-400'}`} />
+                    <span className="text-sm font-medium text-gray-700">Clickbait Title</span>
+                </div>
+                <button 
+                    onClick={() => handleChange('clickbait', !config.clickbait)}
+                    className={`w-9 h-5 rounded-full relative transition-colors duration-300 ${config.clickbait ? 'bg-orange-500' : 'bg-gray-300'}`}
+                    disabled={isGenerating}
+                >
+                    <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all duration-300 ${config.clickbait ? 'left-5' : 'left-1'}`}></div>
+                </button>
+            </div>
+
+            {/* Images Toggle */}
+            <div className="bg-white border border-gray-200 p-3 rounded-lg flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <ImageIcon className={`w-4 h-4 ${config.includeImages ? 'text-blue-500' : 'text-gray-400'}`} />
+                    <span className="text-sm font-medium text-gray-700">Image Ideas</span>
+                </div>
+                <button 
+                    onClick={() => handleChange('includeImages', !config.includeImages)}
+                    className={`w-9 h-5 rounded-full relative transition-colors duration-300 ${config.includeImages ? 'bg-blue-500' : 'bg-gray-300'}`}
+                    disabled={isGenerating}
+                >
+                    <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all duration-300 ${config.includeImages ? 'left-5' : 'left-1'}`}></div>
+                </button>
+            </div>
+
+             {/* FAQ Toggle */}
+             <div className="bg-white border border-gray-200 p-3 rounded-lg flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <HelpCircle className={`w-4 h-4 ${config.includeFAQ ? 'text-green-500' : 'text-gray-400'}`} />
+                    <span className="text-sm font-medium text-gray-700">Auto-FAQ</span>
+                </div>
+                <button 
+                    onClick={() => handleChange('includeFAQ', !config.includeFAQ)}
+                    className={`w-9 h-5 rounded-full relative transition-colors duration-300 ${config.includeFAQ ? 'bg-green-500' : 'bg-gray-300'}`}
+                    disabled={isGenerating}
+                >
+                    <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all duration-300 ${config.includeFAQ ? 'left-5' : 'left-1'}`}></div>
+                </button>
+            </div>
+          </div>
+
+          <hr className="border-gray-100" />
 
           {/* Intent */}
           <div>
